@@ -13,40 +13,31 @@
 
 SoftwareSerial ardunano(11, 12);
 
-void setup()
-{
-  pinMode(trigger, OUTPUT);
-  pinMode(echo, INPUT);
-  digitalWrite(trigger, HIGH);
-  // Open serial communications and wait for port to open:
-  Serial.begin(9600);
-  // set the data rate for the SoftwareSerial port
-  ardunano.begin(9600);
+void setup() {
+  pinMode(trigger, OUTPUT); // Set the trigger pin as an output
+  pinMode(echo, INPUT); // Set the echo pin as an input
+  digitalWrite(trigger, HIGH); // Set the trigger pin to HIGH (unusual for HC-SR04 setup)
+  Serial.begin(9600); // Start the hardware serial communication at 9600 baud rate
+  ardunano.begin(9600); // Start the software serial communication at 9600 baud rate
 }
 
-
-void loop() // main loop
-{
- int tof = getToF();	// read time of flight
- Serial.print(tof, DEC) ;
- Serial.write("\n"); 
- delay(1000); // wait 1 second
+void loop() {
+  int tof = getToF(); // Read time of flight
+  Serial.print(tof, DEC); // Print the time of flight in decimal format
+  Serial.write("\n"); // Send a newline character
+  delay(1000); // Wait for 1 second
 }
 
-
-/* get time of flight in microseconds
- */
-int getToF(){ 
- long time=0;
- digitalWrite(trigger, LOW); 
- delayMicroseconds(3);
- noInterrupts();
- digitalWrite(trigger, HIGH); // trigger impulse 20 us
- delayMicroseconds(20);
- digitalWrite(trigger, LOW); 
- 
- 
- time = pulseIn(echo, HIGH); // measure echo-time
- interrupts(); 
- return(time); 
+/* Function to get time of flight in microseconds */
+int getToF() { 
+  long time = 0;
+  digitalWrite(trigger, LOW); 
+  delayMicroseconds(3);
+  noInterrupts(); // Disable interrupts for precise timing
+  digitalWrite(trigger, HIGH); // Trigger impulse for 20 microseconds
+  delayMicroseconds(20);
+  digitalWrite(trigger, LOW); 
+  time = pulseIn(echo, HIGH); // Measure echo time
+  interrupts(); // Enable interrupts
+  return time; // Return the measured time
 }
