@@ -4,10 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Replace 'COM3' with actual serial port
-ser = serial.Serial('COM3', 9600)  # Initialize serial connection with specified port and baud rate
+ser = serial.Serial('COM4', 9600)  # Initialize serial connection with specified port and baud rate
 ser.flushInput()  # Clear the input buffer to start fresh
 
-distances = [20, 50, 100, 200]  # Distances in cm
+distances = [20, 50, 100]  # Distances in cm
 num_measurements = 50  # Number of measurements per distance
 all_measurements = []  # To store all measurements for all distances
 mean_distances = []  # To store mean distances for each distance
@@ -15,6 +15,7 @@ mean_distances = []  # To store mean distances for each distance
 for distance in distances:
     input(f"Place the sensor at {distance} cm and press Enter")  # Prompt user to position the sensor
     measurements = []  # List to store measurements for the current distance
+    ser.flushInput()  # Clear the input buffer after user input
 
     # Collect data
     for _ in range(num_measurements):

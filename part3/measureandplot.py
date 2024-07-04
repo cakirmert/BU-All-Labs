@@ -4,24 +4,30 @@ import numpy as np  # Import NumPy for numerical operations
 import matplotlib.pyplot as plt  # Import Matplotlib for plotting
 from scipy.stats import linregress  # Import linregress from SciPy for linear regression
 
-# Replace 'COM3' with actual serial port
-ser = serial.Serial('COM3', 9600)  # Initialize serial connection with specified port and baud rate
+# Replace 'COM4' with actual serial port
+ser = serial.Serial('COM4', 9600)  # Initialize serial connection with specified port and baud rate
 ser.flushInput()  # Clear the input buffer to start fresh
 
-distances = [50, 100, 150, 200, 250, 300]  # List of distances in cm for measurements
+distances = [10, 20, 30, 40, 50]  # List of distances in cm for measurements
 num_measurements = 100  # Number of measurements to be taken per distance
 all_measurements = []  # List to store all measurements for all distances
 mean_durations = []  # List to store mean durations for each distance
 
+# Function to initiate measurement and read data
+def measure_distance():
+    ser_bytes = ser.readline()  # Read a line of data from the serial port
+    decoded_bytes = int(ser_bytes.decode("utf-8").strip())  # Decode the bytes and convert to an integer
+    return decoded_bytes
+
 # Loop through each distance to perform measurements
 for distance in distances:
-    input(f"Place the sensor at {distance} cm and press Enter")  # Prompt user to place sensor at specified distance
+    input(f"Place the sensor at {distance} cm and press Enter to start measurements")  # Prompt user to place sensor at specified distance and start measurement
     measurements = []  # List to store measurements for the current distance
+    ser.flushInput()  # Clear the input buffer after user input
 
     # Collect data for the current distance
     for _ in range(num_measurements):
-        ser_bytes = ser.readline()  # Read a line of data from the serial port
-        decoded_bytes = int(ser_bytes[0:len(ser_bytes)-1].decode("utf-8"))  # Decode the bytes and convert to an integer
+        decoded_bytes = measure_distance()
         print(f"Measured Duration for {distance} cm: {decoded_bytes} µs")  # Print the measurement to the console
         measurements.append(decoded_bytes)  # Append the measurement to the list
 
@@ -58,9 +64,15 @@ plt.grid(True)  # Display grid
 plt.savefig("2T_vs_Distance.png")  # Save the plot as a PNG file
 plt.show()  # Display the plot
 
-# Calculate speed of sound
-speed_of_sound = slope * 2  # µs to cm conversion (speed of sound = slope * 2)
-print(f"Calculated speed of sound: {speed_of_sound} cm/µs")  # Print the calculated speed of sound
+# Print the slope and intercept for debugging
+print("Slope (µs/cm):", slope)
+print("Intercept (µs):", intercept)
+
+# Calculate speed of sound in m/s
+# The slope gives us the time for a round trip in µs/cm, so we divide by 2 to get one way in cm
+# Then convert to m/s: speed (cm/µs) * 10^4 (µs to s and cm to m)
+speed_of_sound = (1 / (slope / 2)) * 1e4
+print(f"Calculated speed of sound: {speed_of_sound:.2f} m/s")  # Print the calculated speed of sound
 
 # Identify non-linearity by plotting residuals
 residuals = np.array(mean_durations) - (intercept + slope*np.array(distances))  # Calculate residuals

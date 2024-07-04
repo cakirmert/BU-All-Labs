@@ -2,7 +2,7 @@ import serial
 import csv
 
 # Replace 'COM3' with actual serial port
-ser = serial.Serial('COM3', 9600)
+ser = serial.Serial('COM4', 9600)
 ser.flushInput()
 
 num_measurements = 10  # Number of measurements per position
@@ -14,6 +14,7 @@ threshold = 5  # Threshold for correct measurement in cm
 for position in positions:
     input(f"Place the square object in the {position} position and press Enter")
     measurements = []
+    ser.flushInput()  # Clear the input buffer after user input
 
     # Collect data
     for _ in range(num_measurements):

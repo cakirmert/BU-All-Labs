@@ -37,7 +37,7 @@ with open("distance_data.csv", "w", newline='') as f:  # Open the CSV file in wr
         # Take measurements for the given actual distance
         for _ in range(measurements_per_segment):
             ser_bytes = ser.readline()  # Read a line of data from the serial port
-            decoded_bytes = int(ser_bytes[0:len(ser_bytes)-1].decode("utf-8"))  # Decode the bytes and convert to an integer
+            decoded_bytes = float(ser_bytes[0:len(ser_bytes)-1].decode("utf-8"))  # Decode the bytes and convert to an integer
             print(f"Actual: {actual_distance}, Measured: {decoded_bytes}")  # Print the actual and measured distances
             data.append(decoded_bytes)  # Append the measured distance to the data list
             writer.writerow([actual_distance, decoded_bytes])  # Write the actual and measured distances to the CSV file

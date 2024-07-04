@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Replace 'COM3' with your actual serial port
-ser = serial.Serial('COM3', 9600)  # Initialize serial connection with specified port and baud rate
+ser = serial.Serial('COM4', 9600)  # Initialize serial connection with specified port and baud rate
 ser.flushInput()  # Clear the input buffer to start fresh
 
 distance = 100  # Distance in cm for the measurement
