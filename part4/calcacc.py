@@ -32,6 +32,11 @@ accuracy = (1 - (absolute_error / actual_distance)) * 100
 # Calculate standard deviation
 std_dev = np.std(measurements)
 
+# Calculate resolution
+speed_of_sound = 34300  # Speed of sound in cm/s
+time_resolution = 1  # Time resolution in µs
+resolution = (speed_of_sound * time_resolution) / 1000000  # Resolution in cm
+
 # Output the results
 print(f"Mean Measured Duration: {mean_measured_duration:.2f} µs")
 print(f"Calculated Distance: {distance:.2f} cm")
@@ -39,3 +44,4 @@ print(f"Actual Distance: {actual_distance:.2f} cm")
 print(f"Absolute Error: {absolute_error:.2f} cm")
 print(f"Accuracy: {accuracy:.2f} %")
 print(f"Standard Deviation: {std_dev:.2f} µs")
+print(f"Resolution: {resolution:.4f} cm")
