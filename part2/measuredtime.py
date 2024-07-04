@@ -4,11 +4,11 @@ import numpy as np  # Import the numpy module for data manipulation
 import matplotlib.pyplot as plt  # Import the matplotlib module for plotting
 
 # Replace 'COM3' with the actual serial port connected to the Arduino
-ser = serial.Serial('COM3', 9600)  # Initialize the serial connection
+ser = serial.Serial('COM4', 9600)  # Initialize the serial connection
 ser.flushInput()  # Clear the input buffer of the serial connection
 
 measurements = []  # Create an empty list to store the measurements
-distances = [5, 50, 100, 150, 250]  # Distances in cm to measure
+distances = [10, 20, 50, 70, 100]  # Distances in cm to measure
 
 # Collect data for each distance
 for distance in distances:

@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt  # Import Matplotlib for plotting
 
 # Replace 'COM3' with specific serial port
 # check Device Manager for the exact port
-ser = serial.Serial('COM3', 9600)  # Initialize serial connection with specified port and baud rate
+ser = serial.Serial('COM4', 9600)  # Initialize serial connection with specified port and baud rate
 ser.flushInput()  # Clear the input buffer to start fresh
 
 max = 100  # Number of measurements to be taken
