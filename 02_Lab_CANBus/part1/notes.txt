@@ -1,3 +1,50 @@
+Part 2 – CAN Communication Settings
+
+Test the CAN communication settings with different parameters. The results of these tests include the bitrate, CAN ID, remote request flag, extended frame flag, data length, and data content. The tests are logged with a timestamp.
+
+Deliverables:
+- Document the results for five different settings (bitrate, can_id, remote, extended, data_len, data).
+- Create a CSV file with the results.
+
+### Test Settings
+1. Bitrate: 500000, CAN ID: 0x3FE, Remote: False, Extended: False, Data Length: 8, Data: (1, 2, 3, 4, 5, 6, 7, 8)
+2. Bitrate: 250000, CAN ID: 0x1AA, Remote: False, Extended: True, Data Length: 4, Data: (10, 20, 30, 40)
+3. Bitrate: 125000, CAN ID: 0x2BB, Remote: True, Extended: False, Data Length: 8, Data: (100, 101, 102, 103, 104, 105, 106, 107)
+4. Bitrate: 1000000, CAN ID: 0x4CC, Remote: False, Extended: True, Data Length: 2, Data: (50, 51)
+5. Bitrate: 800000, CAN ID: 0x5DD, Remote: True, Extended: False, Data Length: 6, Data: (200, 201, 202, 203, 204, 205)
+
+### Results
+The results of these tests are saved in the `can_test_results.csv` file.
+
+### Observations and Understanding
+
+The results for different CAN communication settings show the following insights:
+
+1. **Successful Communication**:
+   - Most settings resulted in successful transmission and reception of CAN messages.
+
+2. **Bitrate Handling**:
+   - Communication was reliable across a range of bitrates from 125,000 bps to 1,000,000 bps.
+   - Specific configurations at 125,000 bps and 800,000 bps resulted in zero data being received.
+
+3. **Data Consistency**:
+   - The sent and received data matched for most settings, indicating reliable communication.
+   - Discrepancies at certain bitrates suggest potential issues that need further investigation.
+
+### Recommendations
+
+1. **Further Testing**:
+   - Conduct additional tests to gather more data and identify any underlying issues.
+
+2. **Hardware Check**:
+   - Verify the functioning of CAN transceivers and connectors, especially for configurations with discrepancies.
+
+3. **Software Configuration**:
+   - Ensure consistent and correct software settings across the testing setup.
+
+### Python Script Used:
+
+```python
 import canalystii
 import csv
 from datetime import datetime
@@ -26,7 +73,7 @@ def test_can_settings(bitrate, can_id, remote, extended, data_len, data):
     print(f"Sent: {new_message}")
     
     # Receive the message on channel 1
-    received_message = dev.receive(0)
+    received_message = dev.receive(1)[0]
     print(f"Received: {received_message}")
     
     # Log the results

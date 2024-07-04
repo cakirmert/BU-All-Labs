@@ -23,9 +23,9 @@ for msg in dev.receive(1):
 
 # The canalystii.Message class is a ctypes Structure, to minimize overhead
 
-for value in range(250):
+for value in range(3):
    pl=(value, value, value, value, value, value, value, value)
-   new_message = canalystii.Message(can_id=0x3FE,
+   new_message = canalystii.Message(can_id=0x0AA,
                                  remote=False,
                                  extended=False,
                                  data_len=8,
@@ -33,7 +33,7 @@ for value in range(250):
      # Send one copy to channel 1
    dev.send(1, new_message)
 
-for msg in dev.receive(1):
+for msg in dev.receive(0):
      print(msg)
 
 # Stop both channels (need to call start() again to resume capturing or send any messages)
