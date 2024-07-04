@@ -1,34 +1,24 @@
-import smbus
-import time
+import serial
 import csv
 
-# MPU-6050 Registers and their addresses
-PWR_MGMT_1 = 0x6B
-ACCEL_CONFIG = 0x1C
-ACCEL_XOUT_H = 0x3B
+# Connect to the Arduino via serial port
+arduino_serial = serial.Serial('COM4', 9600)  # Replace 'COM4' with your Arduino's port
 
-# Initialize the MPU-6050
-def MPU_Init(bus, device_address):
-    bus.write_byte_data(device_address, PWR_MGMT_1, 0)  # Write to power management register to wake up the sensor
+def set_accelerometer_range(range_command):
+    arduino_serial.write(range_command.encode())
+    response = arduino_serial.readline().decode().strip()
+    print(response)
 
-# Read raw data from MPU-6050
-def read_raw_data(bus, addr, device_address):
-    high = bus.read_byte_data(device_address, addr)
-    low = bus.read_byte_data(device_address, addr + 1)
-    value = ((high << 8) | low)
-    if value > 32768:
-        value = value - 65536
-    return value
+def measure_accelerometer():
+    arduino_serial.write('M'.encode())
+    data = arduino_serial.readline().decode().strip().split(',')
+    ax, ay, az, gx, gy, gz = map(int, data)
+    return ax, ay, az, gx, gy, gz
 
-# Set accelerometer range
-def set_accelerometer_range(bus, device_address, range_setting):
-    bus.write_byte_data(device_address, ACCEL_CONFIG, range_setting << 3)
-
-# Collect and log measurements for the given range
-def collect_measurements(bus, device_address, accel_range, range_label, output_file):
-    set_accelerometer_range(bus, device_address, accel_range)
+def collect_measurements(range_command, range_label, output_file):
+    set_accelerometer_range(range_command)
     with open(output_file, 'a', newline='') as csvfile:
-        fieldnames = ['range', 'position', 'accel_x']
+        fieldnames = ['range', 'position', 'accel_x', 'accel_y', 'accel_z', 'gyro_x', 'gyro_y', 'gyro_z']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -36,29 +26,23 @@ def collect_measurements(bus, device_address, accel_range, range_label, output_f
         print(f"Collecting measurements for range: {range_label}")
         for position in positions:
             input(f"Place the sensor at {position} (e.g., {position} along X-axis) and press Enter to measure.")
-            accel_x = read_raw_data(bus, ACCEL_XOUT_H, device_address)
-            print(f"Measured accel_x for {position}: {accel_x}")
-            writer.writerow({'range': range_label, 'position': position, 'accel_x': accel_x})
+            ax, ay, az, gx, gy, gz = measure_accelerometer()
+            print(f"Measured accel_x: {ax}, accel_y: {ay}, accel_z: {az}, gyro_x: {gx}, gyro_y: {gy}, gyro_z: {gz} for {position}")
+            writer.writerow({'range': range_label, 'position': position, 'accel_x': ax, 'accel_y': ay, 'accel_z': az, 'gyro_x': gx, 'gyro_y': gy, 'gyro_z': gz})
 
 def main():
-    bus = smbus.SMBus(1)  # Initialize I2C bus
-    device_address = 0x68  # MPU-6050 device address
-
-    # Initialize MPU-6050
-    MPU_Init(bus, device_address)
-
     # Output file for measurements
     output_file = input("Enter the output CSV file name: ")
 
     # Collect measurements for different ranges
     ranges = [
-        (0, "±2g"),
-        (1, "±4g"),
-        (2, "±8g"),
-        (3, "±16g")
+        ('0', "±2g"),
+        ('1', "±4g"),
+        ('2', "±8g"),
+        ('3', "±16g")
     ]
-    for accel_range, range_label in ranges:
-        collect_measurements(bus, device_address, accel_range, range_label, output_file)
+    for range_command, range_label in ranges:
+        collect_measurements(range_command, range_label, output_file)
 
     print(f"Measurements collected and saved to {output_file}")
 

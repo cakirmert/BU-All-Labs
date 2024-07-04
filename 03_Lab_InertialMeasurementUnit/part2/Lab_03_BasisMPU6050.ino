@@ -1,108 +1,53 @@
-// Demo program for inertial measurement unit cluster MPU6050
-// Lab for Bus systems and sensors, Prof. Dr. Rasmus Rettig
-// Connections: Arduino Nano: 5V-5V, GND-GND, A4-SDA, A5-SCL
-// Arduino Micro: 2-SDA, 3-SCL
-
 #include <Wire.h>
+#include <MPU6050.h>
 
-#define sensor_address 0x68
+MPU6050 mpu; // Create an instance of the MPU6050 class
+int16_t ax, ay, az; // Variables to store accelerometer data
+int16_t gx, gy, gz; // Variables to store gyroscope data
+char buffer[10]; // Buffer for serial communication
 
-void setup()
-{
-  // fit baudrate
-  Serial.begin(9600);
-  Wire.begin();
-  delay(1000);
-  
-  // Powermanagement
-  // sleep and reset sensor, use clock for Gyro Z axis 
-  // Serial.println("Call Powermanagement - Reset");
-  SetConfiguration(0x6B, 0x80);
- 
-  // wait
-  delay(500);
- 
-  // Powermanagement
-  // End sleep and use clock for GGyro X axis
-  // Serial.println("Call Powermanagement - Set Clock");
-  SetConfiguration(0x6B, 0x03);
- 
-  delay(500);
- 
-  // Configruation
-  // Default => Acc=260Hz, Delay=0ms, Gyro=256Hz, Delay=0.98ms, Fs=8kHz
-  // Serial.println("Call Configuration - Default Acc = 260Hz, Delay = 0ms");
-  SetConfiguration(0x1A, 0x06);
-  SetConfiguration(0x1B, 0x00);
-  SetConfiguration(0x1C, 0x00);
-  delay(500);
-
-
-  //Serial.println("Setup finished\n");
-}
-
-void loop()
-{
-  byte result[14];
-  // Start-address Acc-X
-  result[0] = 0x3B;
- 
-   // Begin Communication with MPU6050 sensor
-  Wire.beginTransmission(sensor_address);
-  
-  Wire.write(result[0]);	// Use start-address
-  Wire.endTransmission();
-  
-  // Read 14 Bytes
-  Wire.requestFrom(sensor_address, 14);
-  
-  // save Bytes in array
-  for(int i = 0; i < 14; i++)
-  {
-    result[i] = Wire.read();
+void setup() {
+  Serial.begin(9600); // Initialize serial communication
+  Wire.begin(); // Initialize I2C communication
+  mpu.initialize(); // Initialize the MPU6050
+  if (mpu.testConnection()) { // Check if the MPU6050 is connected
+    Serial.println("MPU6050 connection successful"); // Print success message
+  } else {
+    Serial.println("MPU6050 connection failed"); // Print failure message
+    while (1); // Loop indefinitely if connection fails
   }
- 
-  // Each axis value consists of two bytes.
-  // Combine them by bitshifting: value = (byte_high << 8) | byte_low 
- 
-  // Acceleration sensor
-  int acc_X = (((int)result[0]) << 8) | result[1];
-  int acc_Y = (((int)result[2]) << 8) | result[3];
-  int acc_Z = (((int)result[4]) << 8) | result[5];
- 
-  // Temperature sensor
-  int temp = (((int)result[6]) << 8) | result[7];
- 
-  // Gyroscopesensor
-  int gyr_X = (((int)result[8]) << 8) | result[9];
-  int gyr_Y = (((int)result[10]) << 8) | result[11];
-  int gyr_Z = (((int)result[12]) << 8) | result[13];
- 
-  // Output
-  // Serial.print("ACC X:\t");
-  Serial.print(acc_X, DEC); Serial.print("\t");
-  //Serial.print"Y:\t");
-  Serial.print(acc_Y); Serial.print("\t");
-  //Serial.print("Z:\t");
-  Serial.print(acc_Z); Serial.print("\t");
-  //Serial.print("Gyroskope X:\t");
-  Serial.print(gyr_X); 
-  Serial.print("\t");
-  // Serial.print("Y:\t");
-  Serial.print(gyr_Y); Serial.print("\t");
-  // Serial.print("Z:\t");
-  Serial.print(gyr_Z); Serial.print("\t\t");
- //Serial.print("Temperatur:\t");
- Serial.print(temp); Serial.print("\n"); 
 }
 
-void SetConfiguration(byte reg, byte setting)
-{
-   // Call MPU6050 Sensor
-  Wire.beginTransmission(sensor_address);
-  // Register Call
-  Wire.write(reg);
-  // Send configuration byte for the register
-  Wire.write(setting);
-  Wire.endTransmission();
+void loop() {
+  if (Serial.available() > 0) { // Check if there is data available on the serial port
+    char command = Serial.read(); // Read the incoming command
+    switch (command) {
+      case '0':
+        mpu.setFullScaleAccelRange(MPU6050_ACCEL_FS_2); // Set accelerometer range to ±2g
+        Serial.println("Set range to ±2g"); // Print message
+        break;
+      case '1':
+        mpu.setFullScaleAccelRange(MPU6050_ACCEL_FS_4); // Set accelerometer range to ±4g
+        Serial.println("Set range to ±4g"); // Print message
+        break;
+      case '2':
+        mpu.setFullScaleAccelRange(MPU6050_ACCEL_FS_8); // Set accelerometer range to ±8g
+        Serial.println("Set range to ±8g"); // Print message
+        break;
+      case '3':
+        mpu.setFullScaleAccelRange(MPU6050_ACCEL_FS_16); // Set accelerometer range to ±16g
+        Serial.println("Set range to ±16g"); // Print message
+        break;
+      case 'M':
+        mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz); // Get motion data from the MPU6050
+        Serial.print(ax); Serial.print(","); // Print accelerometer data
+        Serial.print(ay); Serial.print(",");
+        Serial.print(az); Serial.print(",");
+        Serial.print(gx); Serial.print(","); // Print gyroscope data
+        Serial.print(gy); Serial.print(",");
+        Serial.println(gz);
+        break;
+    }
+  }
+  delay(100); // Delay for 100 milliseconds
 }
