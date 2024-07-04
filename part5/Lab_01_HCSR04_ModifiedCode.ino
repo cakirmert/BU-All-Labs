@@ -22,20 +22,21 @@ void setup() {
 }
 
 void loop() {
-  int tof = getToF(); // Read time of flight
-  Serial.print(tof, DEC); // Print the time of flight in decimal format
-  Serial.write("\n"); // Send a newline character
+  long duration = getToF(); // Read time of flight
+  float distance = duration * 0.034 / 2; // Calculate distance in cm (speed of sound = 0.034 cm/µs)
+  Serial.print(distance); // Print the distance in cm
+  Serial.write(" cm\n"); // Send a newline character
   delay(1000); // Wait for 1 second
 }
 
 /* Function to get time of flight in microseconds */
-int getToF() { 
+long getToF() { 
   long time = 0;
   digitalWrite(trigger, LOW); 
-  delayMicroseconds(3);
+  delayMicroseconds(2);
   noInterrupts(); // Disable interrupts for precise timing
-  digitalWrite(trigger, HIGH); // Trigger impulse for 20 microseconds
-  delayMicroseconds(20);
+  digitalWrite(trigger, HIGH); // Trigger impulse for 10 microseconds
+  delayMicroseconds(10);
   digitalWrite(trigger, LOW); 
   time = pulseIn(echo, HIGH); // Measure echo time
   interrupts(); // Enable interrupts
