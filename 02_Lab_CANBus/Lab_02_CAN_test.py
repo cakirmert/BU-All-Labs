@@ -10,7 +10,7 @@ import canalystii
 
 # Connect to the Canalyst-II device
 # Passing a bitrate to the constructor causes both channels to be initialized and started.
-dev = canalystii.CanalystDevice(bitrate=500000)
+dev = canalystii.CanalystDevice(bitrate=250000)
 
 # Receive all pending messages on channel 0 / clear buffer
 for msg in dev.receive(1):
@@ -23,7 +23,7 @@ for msg in dev.receive(1):
 
 # The canalystii.Message class is a ctypes Structure, to minimize overhead
 
-for value in range(3):
+for value in range(2):
    pl=(value, value, value, value, value, value, value, value)
    new_message = canalystii.Message(can_id=0x0AA,
                                  remote=False,
