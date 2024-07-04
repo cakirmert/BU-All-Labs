@@ -1,6 +1,0 @@
-bitrate,can_id,remote,extended,data_len,data,sent_message,received_message,timestamp
-500000,1022,False,False,8,"(1, 2, 3, 4, 5, 6, 7, 8)",CanalystMessage ID=0x3fe TS=0x0 Data=0102030405060708,[CanalystMessage ID=0x3fe TS=0x34187f9 Data=0102030405060708],2024-07-04 15:41:59
-250000,426,False,True,4,"(10, 20, 30, 40)",CanalystMessage ID=0x1aa TS=0x0 Data=0a141e2800000000,[CanalystMessage ID=0x1aa TS=0x354f612 Data=0a141e2800000000],2024-07-04 15:44:07
-125000,699,True,False,8,"(100, 101, 102, 103, 104, 105, 106, 107)",CanalystMessage ID=0x2bb TS=0x0 Data=6465666768696a6b,[CanalystMessage ID=0x2bb TS=0x3578f4f Data=0000000000000000],2024-07-04 15:44:24
-1000000,1228,False,True,2,"(50, 51)",CanalystMessage ID=0x4cc TS=0x0 Data=3233000000000000,[CanalystMessage ID=0x4cc TS=0x358f7ec Data=3233000000000000],2024-07-04 15:44:33
-800000,1501,True,False,6,"(200, 201, 202, 203, 204, 205)",CanalystMessage ID=0x5dd TS=0x0 Data=c8c9cacbcccd0000,[CanalystMessage ID=0x5dd TS=0x35b8ce2 Data=0000000000000000],2024-07-04 15:44:50
