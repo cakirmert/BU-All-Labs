@@ -21,9 +21,9 @@ void loop() {
   Serial.print(distance);  // Print the distance in cm
   Serial.write(" cm\n");  // Send a newline character
 
-  if (distance < 200) {
+  if (distance < 50) {
     digitalWrite(ledPin, HIGH);  // Turn on the LED if the object is closer than 2 meters
-  } else if (distance > 210) {
+  } else if (distance > 55) {
     digitalWrite(ledPin, LOW);  // Turn off the LED if the object is farther than 2.10 meters
   }
 
