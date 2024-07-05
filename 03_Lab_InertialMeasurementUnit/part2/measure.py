@@ -1,50 +1,77 @@
 import serial
+import time
 import csv
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import gaussian_kde
 
-# Connect to the Arduino via serial port
-arduino_serial = serial.Serial('COM4', 9600)  # Replace 'COM4' with your Arduino's port
+# Initialize serial communication
+ser = serial.Serial('COM4', 115200)
+time.sleep(2)  # Wait for the connection to be established
 
-def set_accelerometer_range(range_command):
-    arduino_serial.write(range_command.encode())
-    response = arduino_serial.readline().decode().strip()
-    print(response)
+def set_accel_range(range_code):
+    ser.write(range_code.encode())
+    time.sleep(0.1)  # Short delay to ensure command is processed
 
-def measure_accelerometer():
-    arduino_serial.write('M'.encode())
-    data = arduino_serial.readline().decode().strip().split(',')
-    ax, ay, az, gx, gy, gz = map(int, data)
-    return ax, ay, az, gx, gy, gz
+def read_sensor_data(num_samples):
+    daten = []
+    for _ in range(num_samples):
+        ser.write(b'M')  # Request sensor data
+        ser_bytes = ser.readline()
+        try:
+            decoded_line = ser_bytes.strip().decode("utf-8")
+            data = decoded_line.split(",")
+            if len(data) == 6:
+                decoded_bytes = int(data[2])  # Get the Z-axis accelerometer data
+                daten.append(decoded_bytes)
+        except (UnicodeDecodeError, ValueError) as e:
+            print(f"Skipping invalid byte sequence: {e}")
+            continue
+    return daten
 
-def collect_measurements(range_command, range_label, output_file):
-    set_accelerometer_range(range_command)
-    with open(output_file, 'a', newline='') as csvfile:
-        fieldnames = ['range', 'position', 'accel_x', 'accel_y', 'accel_z', 'gyro_x', 'gyro_y', 'gyro_z']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
+# Set accelerometer range (0 for ±2g, 1 for ±4g, 2 for ±8g, 3 for ±16g)
+set_accel_range('0')
 
-        positions = ['-1g', '0g', '+1g']
-        print(f"Collecting measurements for range: {range_label}")
-        for position in positions:
-            input(f"Place the sensor at {position} (e.g., {position} along X-axis) and press Enter to measure.")
-            ax, ay, az, gx, gy, gz = measure_accelerometer()
-            print(f"Measured accel_x: {ax}, accel_y: {ay}, accel_z: {az}, gyro_x: {gx}, gyro_y: {gy}, gyro_z: {gz} for {position}")
-            writer.writerow({'range': range_label, 'position': position, 'accel_x': ax, 'accel_y': ay, 'accel_z': az, 'gyro_x': gx, 'gyro_y': gy, 'gyro_z': gz})
+# Read sensor data
+num_samples = 10000
+daten = read_sensor_data(num_samples)
 
-def main():
-    # Output file for measurements
-    output_file = input("Enter the output CSV file name: ")
+# Save data to CSV
+with open("test_data_neu.csv", "w", newline='') as f:
+    writer = csv.writer(f, delimiter=" ")
+    for value in daten:
+        writer.writerow([value])
 
-    # Collect measurements for different ranges
-    ranges = [
-        ('0', "±2g"),
-        ('1', "±4g"),
-        ('2', "±8g"),
-        ('3', "±16g")
-    ]
-    for range_command, range_label in ranges:
-        collect_measurements(range_command, range_label, output_file)
+# Create x based on the length of daten
+x = np.arange(0, len(daten), 1)
 
-    print(f"Measurements collected and saved to {output_file}")
+plt.figure(0)
+plt.plot(x, daten)
+plt.xlabel('Measurement Number')
+plt.ylabel('ACC_Z')
 
-if __name__ == "__main__":
-    main()
+# Using increased number of bins and range adjustment
+plt.figure(1)
+plt.hist(daten, bins=100, range=(min(daten), max(daten)))  # Adjust the number of bins and range
+plt.xlabel('Value')
+plt.ylabel('Frequency')
+plt.title('Histogram with Increased Bins')
+plt.show()
+
+# Using Kernel Density Estimation (KDE) for a smoother plot
+daten = np.array(daten)
+kde = gaussian_kde(daten)
+x_range = np.linspace(min(daten), max(daten), 1000)
+kde_values = kde(x_range)
+
+plt.figure(2)
+plt.plot(x_range, kde_values)
+plt.xlabel('Value')
+plt.ylabel('Density')
+plt.title('Kernel Density Estimation')
+plt.show()
+
+print("Mittelwert: ")
+print(np.mean(daten))
+
+ser.close()

@@ -16,9 +16,9 @@ import matplotlib.pyplot as plt
 # import time
 # only neccessary, if you want a timestamp
 
-ser = serial.Serial('COM4', 9600)
+ser = serial.Serial('COM4', 115200)
 ser.flushInput()
-max = 1000
+max = 2000
 dataaccx=[]
 dataaccy=[]
 dataaccz=[]
@@ -40,32 +40,26 @@ for n in range(0, max):
         # 1. Quantity
         ser_bytes = ser.readline()
         decoded_bytes = int(ser_bytes[0:len(ser_bytes)-1].decode("utf-8"))
-        print(decoded_bytes)
         dataaccx.append(decoded_bytes)
         # 2. Quantity
         ser_bytes = ser.readline()
         decoded_bytes = int(ser_bytes[0:len(ser_bytes)-1].decode("utf-8"))
-        print(decoded_bytes)
         dataaccy.append(decoded_bytes)
         #
         ser_bytes = ser.readline()
         decoded_bytes = int(ser_bytes[0:len(ser_bytes)-1].decode("utf-8"))
-        print(decoded_bytes)
         dataaccz.append(decoded_bytes)
         #
         ser_bytes = ser.readline()         
         decoded_bytes = int(ser_bytes[0:len(ser_bytes)-1].decode("utf-8"))
-        print(decoded_bytes)
         datagyrx.append(decoded_bytes)        
         #
         ser_bytes = ser.readline()
         decoded_bytes = int(ser_bytes[0:len(ser_bytes)-1].decode("utf-8"))
-        print(decoded_bytes)
         datagyry.append(decoded_bytes)        
         #
         ser_bytes = ser.readline()
         decoded_bytes = int(ser_bytes[0:len(ser_bytes)-1].decode("utf-8"))
-        print(decoded_bytes)
         datagyrz.append(decoded_bytes)        
         # read sync marker
         ser_bytes = ser.readline()       
@@ -82,15 +76,17 @@ ser.close()
 # plotting
 
 plt.figure(0)
-plt.plot(t,dataaccx)
+plt.plot(t,dataaccz)
 plt.xlabel('Measurement Number')
-plt.ylabel('ACC_X')
+plt.ylabel('ACC_Z')
     
 plt.figure(1)        
-a=np.hstack(dataaccx)
-plt.hist(a, bins='auto')
+a=np.hstack(dataaccz)
+plt.hist(a, bins=30)
+plt.xlabel('Value of ACC_Z')
+plt.ylabel('Number of occurences')
 plt.show()
 
 print("Mean: ")
-print(np.mean(dataaccx))
+print(np.mean(dataaccz))
 
