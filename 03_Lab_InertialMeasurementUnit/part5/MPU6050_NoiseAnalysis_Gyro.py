@@ -1,36 +1,35 @@
 import serial
+import time
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
+from scipy.stats import gaussian_kde
 
 # Connect to the Arduino via serial port
-arduino_serial = serial.Serial('COM4', 9600)  # Replace 'COM4' with your Arduino's port
+arduino_serial = serial.Serial('COM4', 115200, timeout=2)  # Replace 'COM4' with your Arduino's port
+time.sleep(2)  # Wait for the connection to be established
 
 def set_bandwidth(bandwidth_command):
     arduino_serial.write(bandwidth_command.encode())
     response = arduino_serial.readline().decode().strip()
     print(response)
 
-def measure_gyro():
-    arduino_serial.write('M'.encode())
-    gz = int(arduino_serial.readline().decode().strip())
-    return gz
-
-def collect_measurements(bandwidth_command, bandwidth_label, output_file, num_samples=1000):
-    set_bandwidth(bandwidth_command)
+def measure_gyro_batch(num_samples):
+    arduino_serial.write(b'M')
     measurements = []
     for _ in range(num_samples):
-        gz = measure_gyro()
-        measurements.append(gz)
+        gz = arduino_serial.readline().decode().strip()
+        if gz:
+            try:
+                measurements.append(int(gz))
+            except ValueError:
+                print(f"Skipping invalid value: {gz}")
+    return measurements
 
-    with open(output_file, 'a', newline='') as csvfile:
-        fieldnames = ['bandwidth', 'measurement']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-        for m in measurements:
-            writer.writerow({'bandwidth': bandwidth_label, 'measurement': m})
-    
+def collect_measurements(bandwidth_command, bandwidth_label, num_samples=1000):
+    set_bandwidth(bandwidth_command)
+    measurements = measure_gyro_batch(num_samples)
     return measurements
 
 def filter_outliers(data, threshold=3):
@@ -59,9 +58,7 @@ def analyze_measurements(measurements, title):
     return mean_value, std_deviation
 
 def main():
-    num_samples = 1000
-    output_file = "gyro_noise_analysis.csv"
-    
+    num_samples = 10000
     bandwidths = [
         ('0', "256Hz"),
         ('1', "188Hz"),
@@ -72,9 +69,13 @@ def main():
         ('6', "5Hz")
     ]
     
+    all_data = {}
     results = []
+    
+    # Collect measurements for each bandwidth
     for bandwidth_command, bandwidth_label in bandwidths:
-        measurements = collect_measurements(bandwidth_command, bandwidth_label, output_file, num_samples)
+        measurements = collect_measurements(bandwidth_command, bandwidth_label, num_samples)
+        all_data[bandwidth_label] = measurements
         mean, std_dev = analyze_measurements(measurements, f"Noise Analysis at {bandwidth_label} (Unfiltered)")
         filtered_measurements = filter_outliers(measurements)
         filtered_mean, filtered_std_dev = analyze_measurements(filtered_measurements, f"Noise Analysis at {bandwidth_label} (Filtered)")
@@ -83,6 +84,46 @@ def main():
     print("Bandwidth, Mean (Unfiltered), Std Dev (Unfiltered), Mean (Filtered), Std Dev (Filtered)")
     for result in results:
         print(f"{result[0]}, {result[1]:.2f}, {result[2]:.2f}, {result[3]:.2f}, {result[4]:.2f}")
+
+    # Plot all data together
+    plt.figure(figsize=(10, 8))
+
+    # Plot time series data for each mode
+    for name, measurements in all_data.items():
+        x = np.arange(0, len(measurements), 1)
+        plt.plot(x, measurements, label=f'Gyro_Z - {name}')
+
+    plt.xlabel('Measurement Number')
+    plt.ylabel('Gyro_Z')
+    plt.legend()
+    plt.title('Gyro_Z Time Series for Different DLPF Modes')
+    plt.show()
+
+    # Plot histograms for each mode
+    plt.figure(figsize=(10, 8))
+    for name, measurements in all_data.items():
+        plt.hist(measurements, bins=100, alpha=0.5, label=f'{name}', range=(min(measurements), max(measurements)))
+
+    plt.xlabel('Value')
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.title('Histogram for Different DLPF Modes')
+    plt.show()
+
+    # Plot KDE for each mode
+    plt.figure(figsize=(10, 8))
+    for name, measurements in all_data.items():
+        measurements = np.array(measurements)
+        kde = gaussian_kde(measurements)
+        x_range = np.linspace(min(measurements), max(measurements), 1000)
+        kde_values = kde(x_range)
+        plt.plot(x_range, kde_values, label=f'{name}')
+
+    plt.xlabel('Value')
+    plt.ylabel('Density')
+    plt.legend()
+    plt.title('Kernel Density Estimation for Different DLPF Modes')
+    plt.show()
 
 if __name__ == "__main__":
     main()
